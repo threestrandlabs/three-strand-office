@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+'use strict';
+// Builds the static GitHub Pages copy of the office into docs/.
+// Same page and renderers as the local server, switched to "static" mode: it
+// reads docs/status.json (names + coarse status only) and re-fetches it every
+// 2 minutes instead of using the local server's live events.
+//
+//   node scripts/build-site.js        # then commit docs/ and push
+const fs = require('fs');
+const path = require('path');
+const { publicStatus } = require('./public-status');
+
+const ROOT = path.join(__dirname, '..');
+const OUT = path.join(ROOT, 'docs');
+const cp = (from, to = from) => {
+  const dst = path.join(OUT, to);
+  fs.mkdirSync(path.dirname(dst), { recursive: true });
+  fs.cpSync(path.join(ROOT, from), dst, { recursive: true });
+};
+
+// Keep an existing status.json so a rebuild doesn't publish a status change.
+const statusFile = path.join(OUT, 'status.json');
+const keepStatus = fs.existsSync(statusFile) ? fs.readFileSync(statusFile, 'utf8') : null;
+fs.rmSync(OUT, { recursive: true, force: true });
+fs.mkdirSync(OUT, { recursive: true });
+
+const html = fs.readFileSync(path.join(ROOT, 'public', 'index.html'), 'utf8');
+if (!html.includes('<html lang="en">')) throw new Error('index.html: <html lang="en"> not found');
+fs.writeFileSync(path.join(OUT, 'index.html'), html.replace('<html lang="en">', '<html lang="en" data-mode="static">'));
+for (const f of ['office.js', 'wing.js', 'office3d.js', 'cord.svg']) cp(path.join('public', f), f);
+cp('assets/kenney');
+cp('assets/agents/grokbot.png');
+cp('LICENSE');
+
+// Team roster: names, roles, colours and desk order only (same as team.json).
+const team = JSON.parse(fs.readFileSync(path.join(ROOT, 'team.json'), 'utf8'));
+const pub = {
+  team: team.team.map(({ name, role, color, desk }) => ({ name, role, color, desk })),
+  groupRoom: team.groupRoom,
+};
+fs.writeFileSync(path.join(OUT, 'team.json'), JSON.stringify(pub, null, 2) + '\n');
+fs.writeFileSync(statusFile, keepStatus ?? JSON.stringify(publicStatus(), null, 2) + '\n');
+fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
+console.log(`Built ${path.relative(ROOT, OUT)}/`);

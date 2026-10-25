@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en" data-mode="static">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three Strand Labs · office</title>
+<link rel="icon" href="cord.svg">
+<!-- Page layout adapted from whatsmyagentdoing (MIT, Charonyuu). -->
+<style>
+  :root {
+    --pandan: #1F6B4F; --pandan-l: #3DA881; --sambal: #E8553D; --sambal-d: #C93F28;
+    --soy: #1E2A26; --coconut: #FBF5EA; --kaya: #F2B33D;
+    --bg: var(--coconut); --panel: #fffdf8; --ink: var(--soy); --muted: #5d6b64; --faint: #9aa59f; --line: #eadfca;
+    --working: var(--pandan); --chatting: var(--pandan-l); --idle: var(--kaya); --unknown: #a39a8a;
+    --shadow: 0 1px 2px rgba(30,42,38,.05), 0 6px 20px rgba(30,42,38,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 14px/1.45 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; padding: 22px 16px 48px; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-bottom: 14px; }
+  h1 { font-size: 20px; margin: 0; display: flex; align-items: center; gap: 10px; letter-spacing: -.01em; }
+  h1 img { height: 30px; }
+  h1 small { font-weight: 500; color: var(--muted); font-size: 14px; }
+  .summary { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+  .chip b { color: var(--ink); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--s); flex: none; }
+  .seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); }
+  .seg button { border: 0; background: none; color: var(--muted); padding: 5px 12px; border-radius: 6px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .seg button.on { background: var(--pandan); color: #fff; }
+  .office { position: relative; height: min(68vh, 760px); min-height: 380px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow); }
+  .office-canvas { display: block; }
+  .office canvas { transition: opacity .35s; }
+  .office.loading canvas { opacity: 0; }
+  .office-loader { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); font-size: 13px; z-index: 2; }
+  .office.loading .office-loader { display: flex; }
+  .office-loader .spin { width: 26px; height: 26px; border: 3px solid var(--line); border-top-color: var(--pandan); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .office-gl, .office-overlay { position: absolute; inset: 0; }
+  .office-overlay { touch-action: none; }
+  .note { margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: #fff4dc; border: 1px solid #f3d99a; color: #6a5323; font-size: 12.5px; }
+  .note code { background: #fffaf0; padding: 1px 5px; border-radius: 4px; }
+  .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 5px; min-width: 0; border-top: 4px solid var(--c); }
+  .top { display: flex; align-items: baseline; gap: 8px; }
+  .name { font-weight: 700; font-size: 15px; }
+  .role { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .status { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 13px; color: var(--s); }
+  .act { color: var(--ink); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .foot { color: var(--faint); font-size: 11.5px; }
+  [data-s="working"] { --s: var(--working); } [data-s="chatting"] { --s: var(--chatting); }
+  [data-s="idle"] { --s: #b5861c; } [data-s="unknown"] { --s: var(--unknown); }
+  .tip { position: fixed; z-index: 10; width: 280px; pointer-events: none; display: none; }
+  .tip .card { box-shadow: 0 10px 30px rgba(30,42,38,.2); }
+  .conn { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: var(--sambal-d); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; display: none; }
+  .conn.on { display: block; }
+  footer { margin-top: 18px; color: var(--faint); font-size: 11.5px; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><img src="cord.svg" alt=""> Three Strand Labs <small>· the office</small></h1>
+    <div class="summary" id="summary"></div>
+    <div class="seg" id="qualSeg"><button data-v="mid">2D</button><button data-v="high">3D</button></div>
+  </header>
+  <div class="office loading" id="office"><div class="office-loader"><div class="spin"></div><span id="loaderText">Setting up the office…</span></div></div>
+  <p class="note" id="note" hidden></p>
+  <div class="roster" id="roster"></div>
+  <footer>Status is coarse on purpose: no message contents, no private chats. Office art and code adapted from
+    <a href="https://github.com/Charonyuu/whatsmyagentdoing">whatsmyagentdoing</a> (MIT); characters and furniture by Kenney (CC0).
+    <span id="sources"></span></footer>
+</div>
+<div class="conn" id="conn">Disconnected, retrying…</div>
+<div class="tip" id="tip"></div>
+<script src="office.js"></script>
+<script src="wing.js"></script>
+<script>
+// Static mode is switched on by scripts/build-site.js for the GitHub Pages copy.
+const STATIC = document.documentElement.dataset.mode === 'static';
+const LABEL = { working: 'Working', chatting: 'Chatting in the group', idle: 'On a break', unknown: 'Status unknown' };
+const state = { data: { now: Date.now(), sessions: [] }, skew: 0, loaded: false,
+  quality: localStorage.getItem('tso.quality') === 'high' ? 'high' : 'mid' };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sgt = new Intl.DateTimeFormat('en-SG', { timeZone: 'Asia/Singapore', hour: 'numeric', minute: '2-digit', weekday: 'short' });
+const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' });
+function ago(t, now) {
+  const m = Math.round((t - now) / 60000);
+  if (m > -1) return 'just now';
+  if (m > -60) return rtf.format(m, 'minute');
+  const h = Math.round(m / 60);
+  return h > -24 ? rtf.format(h, 'hour') : rtf.format(Math.round(h / 24), 'day');
+}
+function card(s, now) {
+  if (STATIC) return `<div class="card" data-s="${s.state}" style="--c:${esc(s.color)}">
+    <div class="top"><span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
+    <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}</div>
+  </div>`;
+  const last = s.lastEventAt
+    ? `Last active ${ago(s.lastEventAt, now)} (${sgt.format(new Date(s.lastEventAt))} SGT)${s.source ? '' : ' · trace on this computer'}`
+    : 'No activity seen on this computer';
+  return `<div class="card" data-s="${s.state}" style="--c:${esc(s.color)}">
+    <div class="top"><span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
+    <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}${s.activity ? `<span class="act">· ${esc(s.activity)}</span>` : ''}</div>
+    <div class="foot">${esc(last)}${s.source ? ` · via ${esc(s.source)}` : ''}</div>
+  </div>`;
+}
+function render() {
+  const now = Date.now() - state.skew;
+  const ss = state.data.sessions;
+  const n = (k) => ss.filter((s) => s.state === k).length;
+  document.getElementById('summary').innerHTML = ['working', 'chatting', 'idle', 'unknown']
+    .map((k) => `<span class="chip" data-s="${k}"><span class="dot"></span>${{ working: 'Working', chatting: 'Chatting', idle: 'On a break', unknown: 'Unknown' }[k]} <b>${n(k)}</b></span>`).join('');
+  document.getElementById('roster').innerHTML = ss.map((s) => card(s, now)).join('');
+  const note = document.getElementById('note');
+  note.hidden = n('unknown') === 0;
+  note.innerHTML = `${n('unknown')} of ${ss.length} have no fresh status, so they're shown wandering with a grey “?”. ` +
+    `Grok Bot keeps conversations on its servers, not on this computer, so the office only knows what a bot reports. ` +
+    `A bot checks in with <code>node scripts/checkin.js &lt;Name&gt; working "short note"</code>; check-ins expire after 30 minutes.`;
+  if (STATIC) {
+    note.textContent = `${n('unknown')} of ${ss.length} have no fresh status, so they're shown wandering with a grey “?”. ` +
+      `This page only shows coarse status (working, chatting, on a break or unknown), published from the office computer.`;
+    document.getElementById('sources').textContent = state.data.updatedAt
+      ? ` Status as of ${sgt.format(new Date(state.data.updatedAt))} SGT (${ago(state.data.updatedAt, Date.now())}); this page re-checks every 2 minutes.` : '';
+  } else
+  document.getElementById('sources').textContent = state.data.providers ? ' Sources: ' + state.data.providers.map((p) => p.describe).join('; ') + '.' : '';
+  document.title = (n('working') ? `(${n('working')}) ` : '') + 'Three Strand Labs · office';
+  if (office && state.loaded) office.update(ss);
+  refreshTip();
+}
+// ---- tooltip
+const tip = document.getElementById('tip');
+let tipKey = null, tipAt = { x: 0, y: 0 };
+function refreshTip() {
+  if (!tipKey) return;
+  const s = state.data.sessions.find((x) => x.key === tipKey);
+  if (!s) { tip.style.display = 'none'; return; }
+  tip.innerHTML = card(s, Date.now() - state.skew);
+  const r = tip.getBoundingClientRect();
+  let x = tipAt.x + 16, y = tipAt.y + 16;
+  if (x + r.width > innerWidth - 8) x = tipAt.x - r.width - 16;
+  if (y + r.height > innerHeight - 8) y = Math.max(8, innerHeight - r.height - 8);
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+const officeOpts = {
+  label: (s) => s.name,
+  showAgent: false,  // everyone is on the same team, so no provider badge
+  onHover(s, at) {
+    if (!s) { tipKey = null; tip.style.display = 'none'; return; }
+    tipKey = s.key; tipAt = at; tip.style.display = 'block'; refreshTip();
+  },
+};
+// ---- office (2D canvas, or the 3D three.js office loaded on demand)
+const officeEl = document.getElementById('office');
+let office = null, officeKind = null;
+async function makeOffice() {
+  const high = state.quality === 'high';
+  const kind = high ? 'high' : 'mid';
+  if (kind === officeKind) return;
+  officeKind = kind;
+  officeEl.classList.add('loading');
+  document.getElementById('loaderText').textContent = high ? 'Loading the 3D office…' : 'Setting up the office…';
+  let Cls = window.Office;
+  if (high) { try { Cls = (await import('./office3d.js')).Office3D; } catch (e) { console.error(e); Cls = window.Office; } }
+  if (office) office.destroy();
+  const mine = new Cls(officeEl, officeOpts);
+  office = mine;
+  office.offDutyLabel = 'out of office';
+  render();
+  const ok = await mine.ready;
+  if (office !== mine) return;
+  if (!ok && high) { state.quality = 'mid'; sync(); officeKind = null; return makeOffice(); }
+  officeEl.classList.remove('loading');
+}
+function sync() {
+  document.querySelectorAll('#qualSeg button').forEach((b) => b.classList.toggle('on', b.dataset.v === state.quality));
+  localStorage.setItem('tso.quality', state.quality);
+}
+document.getElementById('qualSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.quality = b.dataset.v; sync(); makeOffice();
+});
+const q = new URLSearchParams(location.search).get('quality');
+if (q === 'high' || q === 'mid') state.quality = q;
+sync();
+const conn = document.getElementById('conn');
+if (STATIC) {
+  // Published (GitHub Pages) mode: no server. Read the static status.json,
+  // which holds only names + coarse status + an updated-at time, and re-fetch
+  // it every 2 minutes. Roles and colours come from the static team.json.
+  const PUBLIC_STATE = { working: 'working', chatting: 'chatting', 'on a break': 'idle', unknown: 'unknown' };
+  const OFFICE_STATUS = { working: 'tool', chatting: 'typing', idle: 'done', unknown: 'unknown' };
+  let team = null;
+  async function loadStatus() {
+    try {
+      if (!team) team = await fetch('team.json', { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const st = await fetch('status.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const byName = new Map((st.bots || []).map((b) => [String(b.name), String(b.status)]));
+      const sessions = team.team.map((m, i) => {
+        const s = PUBLIC_STATE[byName.get(m.name)] || 'unknown';
+        return { key: `grokbot:${m.name.toLowerCase()}`, agent: 'grokbot', id: m.name.toLowerCase(), name: m.name, role: m.role,
+          color: m.color, project: m.name, state: s, status: OFFICE_STATUS[s],
+          activity: s === 'chatting' ? `In the ${team.groupRoom} room` : null, source: null, lastEventAt: null,
+          startedAt: 1_700_000_000_000 + (m.desk ?? i), turnStartedAt: null, subagent: false, parentId: null };
+      });
+      state.data = { now: Date.now(), sessions, updatedAt: Date.parse(st.updatedAt) || null };
+      state.skew = 0; state.loaded = true; conn.classList.remove('on'); render();
+    } catch (e) { console.error(e); conn.classList.add('on'); }
+  }
+  conn.textContent = 'Could not load the latest status, retrying…';
+  loadStatus();
+  setInterval(loadStatus, 120000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadStatus(); });
+} else {
+  const es = new EventSource('/events');
+  es.onmessage = (e) => { conn.classList.remove('on'); const d = JSON.parse(e.data); state.skew = Date.now() - d.now; state.data = d; state.loaded = true; render(); };
+  es.onerror = () => conn.classList.add('on');
+}
+setInterval(render, 30000);
+makeOffice();
+</script>
+</body>
+</html>

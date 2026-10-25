@@ -1,0 +1,29 @@
+{
+  "updatedAt": "2026-10-25T09:38:15.538Z",
+  "bots": [
+    {
+      "name": "Profiterole",
+      "status": "unknown"
+    },
+    {
+      "name": "Madeleine",
+      "status": "unknown"
+    },
+    {
+      "name": "Crackers",
+      "status": "unknown"
+    },
+    {
+      "name": "Popelini",
+      "status": "unknown"
+    },
+    {
+      "name": "Cookies",
+      "status": "unknown"
+    },
+    {
+      "name": "Financier",
+      "status": "unknown"
+    }
+  ]
+}

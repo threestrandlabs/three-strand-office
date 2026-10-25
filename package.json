@@ -1,0 +1,14 @@
+{
+  "name": "three-strand-office",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A cosy live office view of the Three Strand Labs Grok Bot team. Adapted from whatsmyagentdoing (MIT).",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "devDependencies": { "esbuild": "0.25.12", "three": "0.186.1" },
+  "scripts": {
+    "start": "node src/server.js",
+    "checkin": "node scripts/checkin.js",
+    "build": "esbuild web/office3d.js --bundle --format=esm --minify --target=es2020 --outfile=public/office3d.js --legal-comments=eof"
+  }
+}

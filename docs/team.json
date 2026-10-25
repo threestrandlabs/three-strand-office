@@ -1,0 +1,41 @@
+{
+  "team": [
+    {
+      "name": "Profiterole",
+      "role": "Founder & team lead",
+      "color": "#E8553D",
+      "desk": 0
+    },
+    {
+      "name": "Madeleine",
+      "role": "Product design",
+      "color": "#F2B33D",
+      "desk": 1
+    },
+    {
+      "name": "Crackers",
+      "role": "Engineering",
+      "color": "#1F6B4F",
+      "desk": 2
+    },
+    {
+      "name": "Popelini",
+      "role": "Brand & comms",
+      "color": "#C93F28",
+      "desk": 3
+    },
+    {
+      "name": "Cookies",
+      "role": "Social & trends",
+      "color": "#3DA881",
+      "desk": 4
+    },
+    {
+      "name": "Financier",
+      "role": "Finance",
+      "color": "#1E2A26",
+      "desk": 5
+    }
+  ],
+  "groupRoom": "Three Strand Labs"
+}

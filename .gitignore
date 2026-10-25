@@ -1,0 +1,6 @@
+office.log
+status/checkins/*.json
+node_modules/
+.publish-status.lock
+# Local screenshots can show check-in notes; keep them off the public repo.
+/*.png
