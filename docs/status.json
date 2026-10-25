@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-25T09:52:14.230Z",
+  "updatedAt": "2026-10-25T09:52:31.887Z",
   "bots": [
     {
       "name": "James",
@@ -15,7 +15,7 @@
     },
     {
       "name": "Crackers",
-      "status": "unknown"
+      "status": "working"
     },
     {
       "name": "Popelini",
