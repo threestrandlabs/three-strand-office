@@ -1,11 +1,16 @@
 # Three Strand Labs · the office
 
-A cosy live office view of the Three Strand Labs Grok Bot team: Profiterole, Madeleine,
+A cosy live office view of the Three Strand Labs team: James (Boss) and the Grok Bot team, Profiterole, Madeleine,
 Crackers, Popelini, Cookies and Financier. Each bot has a name tag, role, colour and a
 coarse status (working / chatting in the group / idle / **status unknown**), a short
 one-line activity and when it was last active (in SGT). 2D canvas by default, 3D (three.js) one click away.
 
 **Live (public, coarse status only): https://threestrandlabs.github.io/three-strand-office/**
+
+## Avatars
+
+Each person's avatar (`assets/avatars/`, see its README) shows in their name tag in the 2D and 3D office and on their status card,
+with a thin Soy ring so light circles stay visible. James has a desk like everyone else; on a break he uses the shared chill zone.
 
 ## Break wing: private rooms + chill zone
 

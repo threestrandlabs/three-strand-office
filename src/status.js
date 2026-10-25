@@ -55,6 +55,7 @@ class TeamStatus extends EventEmitter {
         name: m.name,
         role: m.role,
         color: m.color,
+        avatar: m.avatar || null,
         project: m.name,          // the label the office draws over each head
         state: st,
         status: OFFICE_STATUS[st],

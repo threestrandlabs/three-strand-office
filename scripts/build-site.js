@@ -30,12 +30,13 @@ fs.writeFileSync(path.join(OUT, 'index.html'), html.replace('<html lang="en">', 
 for (const f of ['office.js', 'wing.js', 'office3d.js', 'cord.svg']) cp(path.join('public', f), f);
 cp('assets/kenney');
 cp('assets/agents/grokbot.png');
+cp('assets/avatars');
 cp('LICENSE');
 
 // Team roster: names, roles, colours and desk order only (same as team.json).
 const team = JSON.parse(fs.readFileSync(path.join(ROOT, 'team.json'), 'utf8'));
 const pub = {
-  team: team.team.map(({ name, role, color, desk }) => ({ name, role, color, desk })),
+  team: team.team.map(({ name, role, color, desk, avatar }) => ({ name, role, color, desk, avatar })),
   groupRoom: team.groupRoom,
 };
 fs.writeFileSync(path.join(OUT, 'team.json'), JSON.stringify(pub, null, 2) + '\n');

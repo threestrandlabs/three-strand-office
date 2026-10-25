@@ -17,7 +17,7 @@ const STATIC = {
   '/wing.js': ['wing.js', 'text/javascript; charset=utf-8'],
   '/cord.svg': ['cord.svg', 'image/svg+xml'],
 };
-const TYPES = { '.js': 'text/javascript; charset=utf-8', '.glb': 'model/gltf-binary', '.png': 'image/png', '.json': 'application/json' };
+const TYPES = { '.js': 'text/javascript; charset=utf-8', '.glb': 'model/gltf-binary', '.png': 'image/png', '.json': 'application/json', '.svg': 'image/svg+xml' };
 const ASSETS = path.join(ROOT, 'assets');
 
 function serveFile(res, root, rel) {

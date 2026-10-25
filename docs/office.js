@@ -185,7 +185,10 @@
   // ---------------------------------------------------------------- office
 
   class Office {
-    constructor(root, { onHover, label, onFrame, showAgent = true, compact = false } = {}) {
+    constructor(root, { onHover, label, onFrame, showAgent = true, compact = false, avatar = null } = {}) {
+      // Optional per-person avatar for the name tag: avatar(s) -> image URL.
+      this.avatarOf = avatar;
+      this.avatars = new Map();
       this.root = root;
       this.onHover = onHover || (() => {});
       this.label = label || ((s) => s.project || s.agent);
@@ -1321,18 +1324,18 @@
       const font = (w, px) => `${w} ${px}px ui-sans-serif, system-ui, -apple-system, "PingFang TC", "Apple Color Emoji", sans-serif`;
       c.font = font(600, 10);
 
-      const badge = this.showAgent && AGENT_BADGES[s.agent];
+      const badge = this.avatarBadge(s) || (this.showAgent && AGENT_BADGES[s.agent]);
       const pill = (text, fg, bg, yy, alpha = 1, identify = false) => {
         c.globalAlpha = alpha;
         let tx = text;
         while (c.measureText(tx).width > 118 && tx.length > 2) tx = tx.slice(0, -2) + '…';
-        const extra = badge && identify ? 26 : 0;
+        const extra = badge && identify ? (badge.size ? badge.size + 8 : 26) : 0;
         const w = c.measureText(tx).width + 12 + extra;
-        const height = extra ? 22 : 16;
+        const height = extra ? (badge.size ? badge.size + 4 : 22) : 16;
         this.roundRect(x - w / 2, yy - height / 2, w, height, 8, bg);
         c.fillStyle = fg;
         c.fillText(tx, x + extra / 2, yy + 0.5);
-        if (extra) this.agentBadge(badge, x - w / 2 + 13, yy);
+        if (extra) this.agentBadge(badge, x - w / 2 + extra / 2, yy);
         c.globalAlpha = 1;
         return yy - 8;
       };
@@ -1419,14 +1422,33 @@
       c.restore();
     }
 
+    avatarBadge(s) {
+      const url = this.avatarOf && s && this.avatarOf(s);
+      if (!url) return null;
+      let b = this.avatars.get(url);
+      if (!b) {
+        const image = new Image();
+        image.src = url;
+        b = { image, short: String(s.name || '?').slice(0, 1), size: 22, ring: '#1E2A26' };
+        this.avatars.set(url, b);
+      }
+      return b.image.complete && b.image.naturalWidth > 0 ? b : null;
+    }
+
     agentBadge(badge, x, y) {
       const c = this.ctx;
       c.save();
       c.globalAlpha = 1;
+      const size = badge.size || 18;
       if (badge.image.complete && badge.image.naturalWidth > 0) {
         c.imageSmoothingEnabled = true;
         c.imageSmoothingQuality = 'high';
-        c.drawImage(badge.image, x - 9, y - 9, 18, 18);
+        c.drawImage(badge.image, x - size / 2, y - size / 2, size, size);
+        if (badge.ring) {
+          // Thin ring so light avatar circles (e.g. Coconut) keep their edge.
+          c.beginPath(); c.arc(x, y, size / 2 - 0.4, 0, Math.PI * 2);
+          c.lineWidth = 1.2; c.strokeStyle = badge.ring; c.globalAlpha = 0.7; c.stroke();
+        }
       } else {
         c.fillStyle = this.pal.text;
         c.font = '800 10px ui-sans-serif, system-ui, sans-serif';

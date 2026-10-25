@@ -1,11 +1,12 @@
 {
   "team": [
-    { "name": "Profiterole", "role": "Founder & team lead",   "color": "#E8553D", "desk": 0 },
-    { "name": "Madeleine",   "role": "Product design",        "color": "#F2B33D", "desk": 1 },
-    { "name": "Crackers",    "role": "Engineering",           "color": "#1F6B4F", "desk": 2 },
-    { "name": "Popelini",    "role": "Brand & comms",         "color": "#C93F28", "desk": 3 },
-    { "name": "Cookies",     "role": "Social & trends",       "color": "#3DA881", "desk": 4 },
-    { "name": "Financier",   "role": "Finance",               "color": "#1E2A26", "desk": 5 }
+    {"name": "James", "role": "Boss", "color": "#D9822B", "desk": 6, "avatar": "assets/avatars/james-128.png"},
+    {"name": "Profiterole", "role": "Founder & team lead", "color": "#E8553D", "desk": 0, "avatar": "assets/avatars/profiterole-128.png"},
+    {"name": "Madeleine", "role": "Product design", "color": "#F2B33D", "desk": 1, "avatar": "assets/avatars/madeleine-128.png"},
+    {"name": "Crackers", "role": "Engineering", "color": "#1F6B4F", "desk": 2, "avatar": "assets/avatars/crackers-128.png"},
+    {"name": "Popelini", "role": "Brand & comms", "color": "#C93F28", "desk": 3, "avatar": "assets/avatars/popelini-128.png"},
+    {"name": "Cookies", "role": "Social & trends", "color": "#3DA881", "desk": 4, "avatar": "assets/avatars/cookies-128.png"},
+    {"name": "Financier", "role": "Finance", "color": "#1E2A26", "desk": 5, "avatar": "assets/avatars/financier-128.png"}
   ],
   "groupRoom": "Three Strand Labs"
 }

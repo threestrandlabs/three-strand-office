@@ -43,7 +43,8 @@
   .note code { background: #fffaf0; padding: 1px 5px; border-radius: 4px; }
   .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 5px; min-width: 0; border-top: 4px solid var(--c); }
-  .top { display: flex; align-items: baseline; gap: 8px; }
+  .top { display: flex; align-items: center; gap: 8px; }
+  .av { width: 30px; height: 30px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1.5px rgba(30,42,38,.55); background: var(--coconut); }
   .name { font-weight: 700; font-size: 15px; }
   .role { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .status { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 13px; color: var(--s); }
@@ -95,14 +96,14 @@ function ago(t, now) {
 }
 function card(s, now) {
   if (STATIC) return `<div class="card" data-s="${s.state}" style="--c:${esc(s.color)}">
-    <div class="top"><span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
+    <div class="top">${s.avatar ? `<img class="av" src="${esc(s.avatar)}" alt="">` : ''}<span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
     <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}</div>
   </div>`;
   const last = s.lastEventAt
     ? `Last active ${ago(s.lastEventAt, now)} (${sgt.format(new Date(s.lastEventAt))} SGT)${s.source ? '' : ' · trace on this computer'}`
     : 'No activity seen on this computer';
   return `<div class="card" data-s="${s.state}" style="--c:${esc(s.color)}">
-    <div class="top"><span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
+    <div class="top">${s.avatar ? `<img class="av" src="${esc(s.avatar)}" alt="">` : ''}<span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
     <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}${s.activity ? `<span class="act">· ${esc(s.activity)}</span>` : ''}</div>
     <div class="foot">${esc(last)}${s.source ? ` · via ${esc(s.source)}` : ''}</div>
   </div>`;
@@ -146,6 +147,7 @@ function refreshTip() {
 }
 const officeOpts = {
   label: (s) => s.name,
+  avatar: (s) => s.avatar,
   showAgent: false,  // everyone is on the same team, so no provider badge
   onHover(s, at) {
     if (!s) { tipKey = null; tip.style.display = 'none'; return; }
@@ -201,7 +203,7 @@ if (STATIC) {
       const sessions = team.team.map((m, i) => {
         const s = PUBLIC_STATE[byName.get(m.name)] || 'unknown';
         return { key: `grokbot:${m.name.toLowerCase()}`, agent: 'grokbot', id: m.name.toLowerCase(), name: m.name, role: m.role,
-          color: m.color, project: m.name, state: s, status: OFFICE_STATUS[s],
+          color: m.color, avatar: m.avatar || null, project: m.name, state: s, status: OFFICE_STATUS[s],
           activity: s === 'chatting' ? `In the ${team.groupRoom} room` : null, source: null, lastEventAt: null,
           startedAt: 1_700_000_000_000 + (m.desk ?? i), turnStartedAt: null, subagent: false, parentId: null };
       });
