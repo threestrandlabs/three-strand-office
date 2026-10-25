@@ -38,8 +38,8 @@ if [[ -f docs/status.json ]] && same "$TMP" docs/status.json; then
 fi
 if (( DRY )); then echo "Would publish:"; cat "$TMP"; exit 0; fi
 
+git pull --quiet --rebase --autostash origin main || echo "warning: could not pull; pushing anyway"
 cp "$TMP" docs/status.json
-git pull --quiet --rebase origin main || true
 git add docs/status.json
 git commit --quiet -m "Status update $(TZ=Asia/Singapore date '+%a %d %b %H:%M SGT')" -- docs/status.json
 git push --quiet origin HEAD:main
