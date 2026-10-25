@@ -1,6 +1,10 @@
 {
-  "updatedAt": "2026-10-25T09:38:15.538Z",
+  "updatedAt": "2026-10-25T09:52:14.230Z",
   "bots": [
+    {
+      "name": "James",
+      "status": "unknown"
+    },
     {
       "name": "Profiterole",
       "status": "unknown"
