@@ -220,7 +220,20 @@ if (STATIC) {
   const PUBLIC_STATE = { working: 'working', chatting: 'chatting', idle: 'idle' };
   const OFFICE_STATUS = { working: 'tool', chatting: 'typing', idle: 'done' };
   let team = null;
+  // New deploy? Reload (with a cache-buster, since Pages caches HTML for 10 min).
+  const BUILD = document.documentElement.dataset.build || '';
+  async function checkVersion() {
+    try {
+      const v = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null));
+      if (!v || !v.build || !BUILD || v.build === BUILD) return;
+      const url = new URL(location.href);
+      if (url.searchParams.get('v') === v.build) return; // already tried this build; avoid a reload loop
+      url.searchParams.set('v', v.build);
+      location.replace(url.toString());
+    } catch {}
+  }
   async function loadStatus() {
+    checkVersion();
     try {
       if (!team) team = await fetch('team.json', { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
       const st = await fetch('status.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
