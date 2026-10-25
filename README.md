@@ -2,7 +2,7 @@
 
 A cosy live office view of the Three Strand Labs team: James (Boss) and the Grok Bot team, Profiterole, Madeleine,
 Crackers, Popelini, Cookies and Financier. Each bot has a name tag, role, colour and a
-coarse status (working / chatting in the group / idle / **status unknown**), a short
+coarse status (working / chatting in the group / on a break), a short
 one-line activity and when it was last active (in SGT). 2D canvas by default, 3D (three.js) one click away.
 
 **Live (public, coarse status only): https://threestrandlabs.github.io/three-strand-office/**
@@ -21,7 +21,8 @@ To the right of the meeting room and pantry there's a break wing (`public/wing.j
   Popelini (brand swatch board, posters + armchair), Cookies (ring light, phone tripod, cord backdrop + beanbag), Financier (armchair, ledger + plants).
 - **Chill zone** (shared): TV + couch with a games console, snack bar (popcorn, chips, kaya toast, teh tarik), board-game table, record player + speaker, "CHILL ZONE" sign.
 - **Who goes where:** *On a break* (idle) bots go to their own room (~85%) or the chill zone (~15%). Nobody else enters a private room.
-  *Unknown* bots keep wandering the shared spaces with a grey "?". *Working / chatting* bots stay at their desks.
+  James has no private room, so he uses the chill zone. *Working / chatting* bots stay at their desks.
+  Anyone on a break shows a rotating whimsy phrase (front-end constants only, every 25 s, never two the same at once).
 
 
 The 3D view is rebuilt with `npm install && npm run build` (esbuild + three.js, dev-only, local).
@@ -44,7 +45,7 @@ https://threestrandlabs.github.io/three-strand-office/
 - In the static copy (`<html data-mode="static">`) the page reads `docs/status.json` and
   `docs/team.json` and re-fetches the status every 2 minutes. There is no server.
 - `docs/status.json` holds **only** each bot's name, a coarse status
-  (`working` / `chatting` / `on a break` / `unknown`) and an `updatedAt` time. No check-in notes,
+  (`working` / `chatting` / `idle`) and an `updatedAt` time. No check-in notes,
   last-active times, sources, paths or ids are published.
 
 ```bash
@@ -74,8 +75,8 @@ node scripts/checkin.js Madeleine chatting
 node scripts/checkin.js Cookies idle
 ```
 
-If no provider has a fresh state, the bot shows as **status unknown** (wandering with a grey "?").
-We never invent activity. Why: Grok Bot keeps each bot's conversations on its servers, not on
+If they're not on a task, they're idling: without a fresh `working` or `chatting` check-in
+(missing or expired), a bot is shown **on a break**. Why there's no live signal: Grok Bot keeps each bot's conversations on its servers, not on
 this computer (the local stores have no transcript entries), and there is no local activity log
 to watch. The office only knows what is reported to it.
 
@@ -93,7 +94,7 @@ loopback (`localhost`) requests only and refuses other Host headers.
 - Office renderer (2D canvas + 3D three.js), page layout and server pattern: adapted from
   [Charonyuu/whatsmyagentdoing](https://github.com/Charonyuu/whatsmyagentdoing), MIT licence
   (see `LICENSE`, copyright the original author). Changes: Three Strand Labs palette, per-bot
-  shirt colours, an "unknown" state, no self-update or scene downloads.
+  shirt colours, a break wing, no self-update or scene downloads.
 - 3D characters and furniture: [Kenney](https://kenney.nl) Mini Characters and Furniture Kit, CC0
   (`assets/kenney/`).
 - Idea of showing Grok Bot teammates in the office: [tim164863-hue/grokbot-office](https://github.com/tim164863-hue/grokbot-office).

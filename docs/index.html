@@ -11,7 +11,7 @@
     --pandan: #1F6B4F; --pandan-l: #3DA881; --sambal: #E8553D; --sambal-d: #C93F28;
     --soy: #1E2A26; --coconut: #FBF5EA; --kaya: #F2B33D;
     --bg: var(--coconut); --panel: #fffdf8; --ink: var(--soy); --muted: #5d6b64; --faint: #9aa59f; --line: #eadfca;
-    --working: var(--pandan); --chatting: var(--pandan-l); --idle: var(--kaya); --unknown: #a39a8a;
+    --working: var(--pandan); --chatting: var(--pandan-l); --idle: var(--kaya);
     --shadow: 0 1px 2px rgba(30,42,38,.05), 0 6px 20px rgba(30,42,38,.06);
   }
   * { box-sizing: border-box; }
@@ -52,7 +52,7 @@
   .act { color: var(--ink); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .foot { color: var(--faint); font-size: 11.5px; }
   [data-s="working"] { --s: var(--working); } [data-s="chatting"] { --s: var(--chatting); }
-  [data-s="idle"] { --s: #b5861c; } [data-s="unknown"] { --s: var(--unknown); }
+  [data-s="idle"] { --s: #b5861c; }
   .tip { position: fixed; z-index: 10; width: 280px; pointer-events: none; display: none; }
   .tip .card { box-shadow: 0 10px 30px rgba(30,42,38,.2); }
   .conn { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: var(--sambal-d); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; display: none; }
@@ -104,7 +104,7 @@ function breakPhrases(sessions) {
   let k = 0;
   for (const s of sessions) s.breakPhrase = s.state === 'idle' ? BREAK_PHRASES[order[k++ % order.length]] : null;
 }
-const LABEL = { working: 'Working', chatting: 'Chatting in the group', idle: 'On a break', unknown: 'Status unknown' };
+const LABEL = { working: 'Working', chatting: 'Chatting in the group', idle: 'On a break' };
 const state = { data: { now: Date.now(), sessions: [] }, skew: 0, loaded: false,
   quality: localStorage.getItem('tso.quality') === 'high' ? 'high' : 'mid' };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -136,17 +136,17 @@ function render() {
   const ss = state.data.sessions;
   breakPhrases(ss);
   const n = (k) => ss.filter((s) => s.state === k).length;
-  document.getElementById('summary').innerHTML = ['working', 'chatting', 'idle', 'unknown']
-    .map((k) => `<span class="chip" data-s="${k}"><span class="dot"></span>${{ working: 'Working', chatting: 'Chatting', idle: 'On a break', unknown: 'Unknown' }[k]} <b>${n(k)}</b></span>`).join('');
+  document.getElementById('summary').innerHTML = ['working', 'chatting', 'idle']
+    .map((k) => `<span class="chip" data-s="${k}"><span class="dot"></span>${{ working: 'Working', chatting: 'Chatting', idle: 'On a break' }[k]} <b>${n(k)}</b></span>`).join('');
   document.getElementById('roster').innerHTML = ss.map((s) => card(s, now)).join('');
   const note = document.getElementById('note');
-  note.hidden = n('unknown') === 0;
-  note.innerHTML = `${n('unknown')} of ${ss.length} have no fresh status, so they're shown wandering with a grey “?”. ` +
-    `Grok Bot keeps conversations on its servers, not on this computer, so the office only knows what a bot reports. ` +
+  note.hidden = n('idle') === 0;
+  note.innerHTML = `If they're not on a task, they're idling: ${n('idle')} of ${ss.length} on a break in their own room or the chill zone. ` +
+    `Anyone without a fresh “working” or “chatting” check-in counts as on a break. ` +
     `A bot checks in with <code>node scripts/checkin.js &lt;Name&gt; working "short note"</code>; check-ins expire after 30 minutes.`;
   if (STATIC) {
-    note.textContent = `${n('unknown')} of ${ss.length} have no fresh status, so they're shown wandering with a grey “?”. ` +
-      `This page only shows coarse status (working, chatting, on a break or unknown), published from the office computer.`;
+    note.textContent = `If they're not on a task, they're idling: ${n('idle')} of ${ss.length} on a break in their own room or the chill zone. ` +
+      `This page only shows coarse status (working, chatting or on a break), published from the office computer.`;
     document.getElementById('sources').textContent = state.data.updatedAt
       ? ` Status as of ${sgt.format(new Date(state.data.updatedAt))} SGT (${ago(state.data.updatedAt, Date.now())}); this page re-checks every 2 minutes.` : '';
   } else
@@ -216,8 +216,9 @@ if (STATIC) {
   // Published (GitHub Pages) mode: no server. Read the static status.json,
   // which holds only names + coarse status + an updated-at time, and re-fetch
   // it every 2 minutes. Roles and colours come from the static team.json.
-  const PUBLIC_STATE = { working: 'working', chatting: 'chatting', 'on a break': 'idle', unknown: 'unknown' };
-  const OFFICE_STATUS = { working: 'tool', chatting: 'typing', idle: 'done', unknown: 'unknown' };
+  // Anything that isn't working/chatting (incl. older "on a break"/"unknown" files) is idle.
+  const PUBLIC_STATE = { working: 'working', chatting: 'chatting', idle: 'idle' };
+  const OFFICE_STATUS = { working: 'tool', chatting: 'typing', idle: 'done' };
   let team = null;
   async function loadStatus() {
     try {
@@ -225,7 +226,7 @@ if (STATIC) {
       const st = await fetch('status.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
       const byName = new Map((st.bots || []).map((b) => [String(b.name), String(b.status)]));
       const sessions = team.team.map((m, i) => {
-        const s = PUBLIC_STATE[byName.get(m.name)] || 'unknown';
+        const s = PUBLIC_STATE[byName.get(m.name)] || 'idle';
         return { key: `grokbot:${m.name.toLowerCase()}`, agent: 'grokbot', id: m.name.toLowerCase(), name: m.name, role: m.role,
           color: m.color, avatar: m.avatar || null, project: m.name, state: s, status: OFFICE_STATUS[s],
           activity: s === 'chatting' ? `In the ${team.groupRoom} room` : null, source: null, lastEventAt: null,

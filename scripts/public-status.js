@@ -8,17 +8,17 @@
 //   { "updatedAt": "2026-10-25T09:40:00.000Z",
 //     "bots": [ { "name": "Crackers", "status": "working" }, ... ] }
 //
-// status is one of: working | chatting | on a break | unknown
+// status is one of: working | chatting | idle   (no fresh working/chatting = idle)
 const { TeamStatus } = require('../src/status');
 
-const PUBLIC = { working: 'working', chatting: 'chatting', idle: 'on a break', unknown: 'unknown' };
+const PUBLIC = { working: 'working', chatting: 'chatting', idle: 'idle' };
 
 function publicStatus(now = new Date()) {
   const team = new TeamStatus();
   const names = new Set(team.team.team.map((m) => m.name));
   const bots = team.sessions()
     .filter((s) => names.has(s.name))
-    .map((s) => ({ name: String(s.name), status: PUBLIC[s.state] || 'unknown' }));
+    .map((s) => ({ name: String(s.name), status: PUBLIC[s.state] || 'idle' }));
   return { updatedAt: now.toISOString(), bots };
 }
 

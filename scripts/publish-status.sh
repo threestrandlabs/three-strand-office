@@ -21,7 +21,7 @@ node -e '
 const fs = require("fs");
 const s = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 const team = new Set(JSON.parse(fs.readFileSync("team.json", "utf8")).team.map((m) => m.name));
-const ok = new Set(["working", "chatting", "on a break", "unknown"]);
+const ok = new Set(["working", "chatting", "idle"]);
 const keys = (o) => Object.keys(o).sort().join(",");
 if (keys(s) !== "bots,updatedAt" || isNaN(Date.parse(s.updatedAt)) || !Array.isArray(s.bots)) throw new Error("bad shape");
 for (const b of s.bots) if (keys(b) !== "name,status" || !team.has(b.name) || !ok.has(b.status)) throw new Error("bad entry " + JSON.stringify(b));

@@ -2,8 +2,8 @@
 // Pluggable status: a list of providers, each answering
 //   read(member, now) -> { source, state?, activity?, lastActiveAt? } | null
 // The first provider with a fresh `state` wins; lastActiveAt is the newest
-// any provider reports. With no state, the bot shows as "status unknown":
-// we never invent activity.
+// any provider reports. Without a fresh working/chatting state the bot is
+// "on a break" (idle): if they're not on a task, they're idling.
 //
 // To add a source (e.g. an official Grok Bot activity API, if one appears),
 // drop a file in src/providers/ and add it to PROVIDERS below.
@@ -19,9 +19,8 @@ const PROVIDERS = [
 
 // How each state appears in the office (reusing the original's animations):
 // working -> at a desk, typing with a ⚙ bubble; chatting -> at a desk with
-// a typing bubble; idle -> off duty, wandering the pantry and lounge;
-// unknown -> wandering with a grey "?".
-const OFFICE_STATUS = { working: 'tool', chatting: 'typing', idle: 'done', unknown: 'unknown' };
+// a typing bubble; idle -> on a break in their own room or the chill zone.
+const OFFICE_STATUS = { working: 'tool', chatting: 'typing', idle: 'done' };
 
 class TeamStatus extends EventEmitter {
   constructor() {
@@ -47,7 +46,7 @@ class TeamStatus extends EventEmitter {
         if (r.lastActiveAt) last = Math.max(last, r.lastActiveAt);
         if (!state && r.state) { state = r.state; activity = r.activity; source = r.source; }
       }
-      const st = state || 'unknown';
+      const st = state || 'idle';
       return {
         key: `grokbot:${m.name.toLowerCase()}`,
         agent: 'grokbot',
