@@ -44,6 +44,7 @@
   .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 5px; min-width: 0; border-top: 4px solid var(--c); }
   .top { display: flex; align-items: center; gap: 8px; }
+  .phrase { font-style: italic; color: var(--muted); font-size: 13px; }
   .av { width: 30px; height: 30px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1.5px rgba(30,42,38,.55); background: var(--coconut); }
   .name { font-weight: 700; font-size: 15px; }
   .role { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -81,6 +82,28 @@
 <script>
 // Static mode is switched on by scripts/build-site.js for the GitHub Pages copy.
 const STATIC = document.documentElement.dataset.mode === 'static';
+// Whimsy for anyone on a break. Front-end only: never read from bot data or
+// status.json. Rotates every 25 s; no two bots show the same line at once.
+const BREAK_PHRASES = [
+  'Resting on a hammock', 'Counting the air particles in the air', 'Teaching the office plant to photosynthesise faster',
+  'Staring meaningfully at a kaya toast', 'Negotiating with the vending machine', 'Watching the teh tarik cool down',
+  'Practising a dramatic sigh', 'Alphabetising the snack drawer', 'Napping with one eye open',
+  'Racing the cat to the beanbag', 'Rehearsing an acceptance speech', 'Daydreaming about durian season',
+  'Untangling the earphones of destiny', 'Petting an imaginary corgi', 'Losing at board games to themselves',
+  'Floating on a cloud of bubble tea', 'Doing absolutely nothing, professionally', 'Waiting for the kettle to boil, again',
+  "Measuring the beanbag's squish factor", 'Plotting world domination, after a nap',
+];
+const PHRASE_MS = 25000;
+function breakPhrases(sessions) {
+  const slot = Math.floor(Date.now() / PHRASE_MS);
+  // Seeded shuffle per time slot, then hand out distinct phrases in team order.
+  let seed = (slot * 2654435761) >>> 0;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const order = BREAK_PHRASES.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  let k = 0;
+  for (const s of sessions) s.breakPhrase = s.state === 'idle' ? BREAK_PHRASES[order[k++ % order.length]] : null;
+}
 const LABEL = { working: 'Working', chatting: 'Chatting in the group', idle: 'On a break', unknown: 'Status unknown' };
 const state = { data: { now: Date.now(), sessions: [] }, skew: 0, loaded: false,
   quality: localStorage.getItem('tso.quality') === 'high' ? 'high' : 'mid' };
@@ -97,20 +120,21 @@ function ago(t, now) {
 function card(s, now) {
   if (STATIC) return `<div class="card" data-s="${s.state}" style="--c:${esc(s.color)}">
     <div class="top">${s.avatar ? `<img class="av" src="${esc(s.avatar)}" alt="">` : ''}<span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
-    <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}</div>
+    <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}</div>${s.breakPhrase ? `<div class="phrase">${esc(s.breakPhrase)}</div>` : ''}
   </div>`;
   const last = s.lastEventAt
     ? `Last active ${ago(s.lastEventAt, now)} (${sgt.format(new Date(s.lastEventAt))} SGT)${s.source ? '' : ' · trace on this computer'}`
     : 'No activity seen on this computer';
   return `<div class="card" data-s="${s.state}" style="--c:${esc(s.color)}">
     <div class="top">${s.avatar ? `<img class="av" src="${esc(s.avatar)}" alt="">` : ''}<span class="name">${esc(s.name)}</span><span class="role">${esc(s.role)}</span></div>
-    <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}${s.activity ? `<span class="act">· ${esc(s.activity)}</span>` : ''}</div>
+    <div class="status"><span class="dot"></span>${esc(LABEL[s.state])}${!s.breakPhrase && s.activity ? `<span class="act">· ${esc(s.activity)}</span>` : ''}</div>${s.breakPhrase ? `<div class="phrase">${esc(s.breakPhrase)}</div>` : ''}
     <div class="foot">${esc(last)}${s.source ? ` · via ${esc(s.source)}` : ''}</div>
   </div>`;
 }
 function render() {
   const now = Date.now() - state.skew;
   const ss = state.data.sessions;
+  breakPhrases(ss);
   const n = (k) => ss.filter((s) => s.state === k).length;
   document.getElementById('summary').innerHTML = ['working', 'chatting', 'idle', 'unknown']
     .map((k) => `<span class="chip" data-s="${k}"><span class="dot"></span>${{ working: 'Working', chatting: 'Chatting', idle: 'On a break', unknown: 'Unknown' }[k]} <b>${n(k)}</b></span>`).join('');
@@ -221,6 +245,8 @@ if (STATIC) {
   es.onerror = () => conn.classList.add('on');
 }
 setInterval(render, 30000);
+// Rotate break phrases right on each slot boundary.
+setTimeout(function tick() { render(); setTimeout(tick, PHRASE_MS - (Date.now() % PHRASE_MS) + 50); }, PHRASE_MS - (Date.now() % PHRASE_MS) + 50);
 makeOffice();
 </script>
 </body>

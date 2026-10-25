@@ -1325,10 +1325,10 @@
       c.font = font(600, 10);
 
       const badge = this.avatarBadge(s) || (this.showAgent && AGENT_BADGES[s.agent]);
-      const pill = (text, fg, bg, yy, alpha = 1, identify = false) => {
+      const pill = (text, fg, bg, yy, alpha = 1, identify = false, maxW = 118) => {
         c.globalAlpha = alpha;
         let tx = text;
-        while (c.measureText(tx).width > 118 && tx.length > 2) tx = tx.slice(0, -2) + '…';
+        while (c.measureText(tx).width > maxW && tx.length > 2) tx = tx.slice(0, -2) + '…';
         const extra = badge && identify ? (badge.size ? badge.size + 8 : 26) : 0;
         const w = c.measureText(tx).width + 12 + extra;
         const height = extra ? (badge.size ? badge.size + 4 : 22) : 16;
@@ -1415,7 +1415,13 @@
 
       const hover = this.hoverKey === p.key;
       if (!s.subagent || hover) {
-        pill(this.label(s), pal.text, pal.tagBg, top - 11, p.mode === 'work' || hover ? 1 : 0.7, true);
+        const tagTop = pill(this.label(s), pal.text, pal.tagBg, top - 11, p.mode === 'work' || hover ? 1 : 0.7, true);
+        // On a break: a small rotating whimsy line above the name tag (set by the page).
+        if (s.breakPhrase && p.mode !== 'work') {
+          c.font = font('italic 600', 9);
+          pill(s.breakPhrase, pal.bubbleInk, pal.bubble, tagTop - 10, hover ? 1 : 0.88, false, 190);
+          c.font = font(600, 10);
+        }
       } else if (badge) {
         this.agentBadge(badge, x, top - 11);
       }
