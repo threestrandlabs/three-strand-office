@@ -1,17 +1,17 @@
 {
-  "updatedAt": "2026-10-25T09:52:31.887Z",
+  "updatedAt": "2026-10-25T10:07:54.217Z",
   "bots": [
     {
       "name": "James",
-      "status": "unknown"
+      "status": "idle"
     },
     {
       "name": "Profiterole",
-      "status": "unknown"
+      "status": "idle"
     },
     {
       "name": "Madeleine",
-      "status": "unknown"
+      "status": "idle"
     },
     {
       "name": "Crackers",
@@ -19,15 +19,15 @@
     },
     {
       "name": "Popelini",
-      "status": "unknown"
+      "status": "idle"
     },
     {
       "name": "Cookies",
-      "status": "unknown"
+      "status": "idle"
     },
     {
       "name": "Financier",
-      "status": "unknown"
+      "status": "idle"
     }
   ]
 }
